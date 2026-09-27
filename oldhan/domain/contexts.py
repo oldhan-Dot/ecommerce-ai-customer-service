@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Any, Dict
 
 
@@ -15,6 +15,10 @@ class TaskContext:
     step_id: str
     slots:dict[str,Any] = field(default_factory=dict) #记录拿到的内容：order_number....
 
+
+    def to_dict(self)->dict:
+        return asdict(self)
+
     @classmethod
     def from_dict(cls,data:Dict[str, Any]) -> "TaskContext":
         return cls(
@@ -22,6 +26,8 @@ class TaskContext:
         step_id = data["step_id"],
         slots = data.get("slots", {}),
         )
+
+
 
 #系统上下文(是为用户上下文服务的:collect->执行系统任务)
 @dataclass(slots=True)
@@ -32,10 +38,14 @@ class SystemContext:
     flow_id: str
     step_id: str
 
+    def to_dict(self)->dict:
+        return {}
+
     @classmethod
     def from_dict(cls,raw_sys:Dict[str, Any]) -> "SystemContext":
         flow_id = raw_sys.get("flow_id")
         return SYSTEM_CONTEXTS_DiICT[flow_id].from_dict(raw_sys)
+
 
 
 
@@ -48,6 +58,9 @@ class StartSystemContext(SystemContext):
     """system_task_started系统任务上下文"""
     start_flow_id: str
     start_step_name: str
+
+    def to_dict(self)->dict:
+        return asdict(self)
 
     @classmethod
     def from_dict(cls,raw_sys:Dict[str, Any]) -> "StartSystemContext":
@@ -64,6 +77,9 @@ class ResumedSystemContext(SystemContext):
     resume_flow_id: str
     resume_step_name: str
 
+    def to_dict(self)->dict:
+        return asdict(self)
+
     @classmethod
     def from_dict(cls,raw_sys:Dict[str, Any]) -> "ResumedSystemContext":
         return cls(
@@ -78,6 +94,9 @@ class ResumedSystemContext(SystemContext):
 class CannotHandleSystemContext(SystemContext):
     """system_cannot_handle系统任务上下文"""
     reason:str
+
+    def to_dict(self)->dict:
+        return asdict(self)
     @classmethod
     def from_dict(cls,raw_sys:Dict[str, Any]) -> "CannotHandleSystemContext":
         return cls(
@@ -92,6 +111,9 @@ class CollectSystemContext(SystemContext):
     slot_name: str
     response:dict = field(default_factory=dict)
 
+    def to_dict(self)->dict:
+        return asdict(self)
+
     @classmethod
     def from_dict(cls, raw_sys: Dict) -> "CollectSystemContext":
         return cls(
@@ -104,10 +126,13 @@ class CollectSystemContext(SystemContext):
 @dataclass(slots=True)
 class InterruptedSystemContext(SystemContext):
     """system_task_intertupted系统任务上下文"""
-    interrupt_flow_id: str
-    interrupt_step_name: str
-    start_flow_id: str | None = None
-    start_step_name: str | None = None
+    interrupted_flow_id: str
+    interrupted_step_name: str
+    started_flow_id: str | None = None
+    started_step_name: str | None = None
+
+    def to_dict(self)->dict:
+        return asdict(self)
 
     @classmethod
     def from_dict(cls, raw_sys: Dict) -> "InterruptedSystemContext":
@@ -115,16 +140,19 @@ class InterruptedSystemContext(SystemContext):
             flow_id=raw_sys["flow_id"],
             step_id=raw_sys["step_id"],
             interrupted_flow_id=raw_sys["interrupted_flow_id"],
-            interrupted_flow_name=raw_sys["interrupted_flow_name"],
+            interrupted_step_name=raw_sys["interrupted_step_name"],
             started_flow_id=raw_sys.get("started_flow_id"),
-            started_flow_name=raw_sys.get("started_flow_name"),
+            started_step_name=raw_sys.get("started_step_name"),
         )
 
 @dataclass(slots=True)
 class CanceledSystemContext(SystemContext):
     """system_task_canceled上下文"""
-    canned_flow_id: str
-    canned_step_name: str
+    canceled_flow_id: str
+    canceled_step_name: str
+
+    def to_dict(self)->dict:
+        return asdict(self)
 
     @classmethod
     def from_dict(cls, raw_sys: Dict) -> "CanceledSystemContext":
@@ -132,7 +160,7 @@ class CanceledSystemContext(SystemContext):
             flow_id=raw_sys["flow_id"],
             step_id=raw_sys["step_id"],
             canceled_flow_id=raw_sys["canceled_flow_id"],
-            canceled_flow_name=raw_sys["canceled_flow_name"],
+            canceled_step_name=raw_sys["canceled_step_name"],
         )
 SYSTEM_CONTEXTS_DiICT = {
     "system_task_started": StartSystemContext,
