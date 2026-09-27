@@ -30,20 +30,33 @@ class DialogueStateRepository:
         #将字典数据转换为DialogueState对象
         return DialogueState.from_dict(dict_data)
 
-    async def save(self,state:DialogueState)->None:
-        pass
+    async def save(self, state: DialogueState) -> None:
+        """
+        更新对话状态
+        """
+        # 1.将state转换成json格式字符串结构
+        dict_data = state.to_dict()
+        json_str = json.dumps(dict_data, ensure_ascii=False)
+
+        # 2.根据state.sender_id查询用户状态
+        result = await self._session.execute(
+            select(DialogueStateRecord).where(DialogueStateRecord.sender_id == state.sender_id)
+        )
+        record = result.scalar_one_or_none()
+        # 3.判断用户状态
+        if record is None:
+            #   如果没有查询到结果，则插入新用户状态
+            self._session.add(
+                DialogueStateRecord(
+                    sender_id=state.sender_id, state_json=json_str
+                )
+            )
+        else:
+            #   如果查询到了结果，则更新用户状态
+            record.state_json = json_str
+
+        await self._session.commit()
 
 
 
-if __name__ == "__main__":
-    database.init_db_engine_and_session_factory()
 
-    async def test():
-        async with database.session_factory() as session:
-            repo = DialogueStateRepository(session)
-            state:DialogueState = await repo.load("u1003")
-            print("查询结果:", state)
-
-        await database.close_db_engine()
-
-    asyncio.run(test())

@@ -13,7 +13,6 @@ router = APIRouter()
 @router.get("/api/chat/history",response_model=ChatHistoryResponse)
 async def chat_history(sender_id:str):
     print("sender_id :",sender_id)
-
     return ChatHistoryResponse(
         sender_id =sender_id,
         messages =[ChatHistoryMessageResponse(
