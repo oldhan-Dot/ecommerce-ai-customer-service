@@ -56,7 +56,7 @@ async def chat(chat_request:ChatRequest,
      #用户消息
     user_message = UserMessage.from_dict(dict_data)
     #2.调用DialogueService类中的process_message方法进行对话处理
-    process_result:ProcessResult = DialogueService.process_message(user_message)
+    process_result:ProcessResult = await DialogueService.process_message(user_message)
 
     #将领域模型process_result转换为交互模型ChatResponse
     messages = []

@@ -164,7 +164,7 @@ flows:
           mode: static
           text: "好的，我们先把{{ context.interrupted_flow_name }}放一放。"
         next:
-          - if: "context.get('started_flow_name')"
+          - if: "context.started_flow_name"
             then: announce_started
           - else: end
 

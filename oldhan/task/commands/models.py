@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-#commands:[{command:str,flow:flow_id}]
+#commands:[{command:str,flow:flow_id}]可能含有多个command
+#将llm生成的json命令传入Command中转换为对象格式
 @dataclass(slots=True)
 class Command:
     command: str

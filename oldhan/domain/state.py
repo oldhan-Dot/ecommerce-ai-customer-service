@@ -1,6 +1,7 @@
 import time
+import uuid
 from dataclasses import dataclass, field, asdict
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from oldhan.domain.contexts import TaskContext, SystemContext
 from oldhan.domain.messages import UserMessage, BotMessage
@@ -166,3 +167,35 @@ class DialogueState:
     def commit_pending_turn(self):
         self.get_current_session().turns.append(self.pending_turn)
         self.pending_turn = None
+
+    #启动目标任务(定义上下文)
+    def start_task(self,task_context: TaskContext):
+        self.active_task = task_context
+        self.active_system_task = None
+
+    #启动系统任务
+    def start_system_task(self,system_context: SystemContext):
+        self.active_system_task = system_context
+
+    #中断任务(若有正在进行的任务)
+    def interrupt_active_task(self):
+        self.paused_tasks.append(self.active_task)
+        self.active_task = None
+        self.active_system_task = None
+
+    #填槽set_slots
+    def set_slots(self,slots:dict):
+        self.active_task.slots.update(slots)
+
+    #取消任务
+    def cancel_active_task(self):
+        self.active_task = None
+        self.active_system_task = None
+
+    #恢复任务
+    def resume_task(self,flow_id:str):
+        for task in self.paused_tasks:
+            if task.flow_id == flow_id:
+                self.active_task = task
+                self.paused_tasks.remove(task)
+                break
