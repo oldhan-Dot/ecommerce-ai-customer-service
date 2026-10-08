@@ -12,7 +12,7 @@ def init_db_engine_and_session_factory():
     global engine, session_factory
     engine = create_async_engine(
         url = settings.database_url,
-        echo = True, #是否打开日志
+        echo = False, #是否打开日志
         pool_pre_ping = False, #是否打开预检查
     )
     session_factory = async_sessionmaker(

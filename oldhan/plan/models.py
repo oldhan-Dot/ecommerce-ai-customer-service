@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from oldhan.clarify.reasons import ClarifyReason
 from oldhan.task.commands.models import Command
 #TurnPlan是决定进入哪个任务处理流程，command是taskhandle处理链路中的几个任务步骤命令
 
@@ -38,3 +39,7 @@ class TurnPlan:
             knowledge = KnowledgeTurnPlan.from_dict(dict_data.get("knowledge"))is not None if dict_data.get("knowledge") else None,
             chitchat = ChitChatTurnPlan() if dict_data.get("chitchat") is not None else None
         )
+@dataclass(slots=True)
+class TurnPlanValidationResult:
+    valid: bool
+    reason: ClarifyReason | None = None

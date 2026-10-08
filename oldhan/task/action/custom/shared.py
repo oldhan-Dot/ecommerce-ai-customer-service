@@ -3,6 +3,7 @@ from typing import Any
 from urllib.parse import quote
 
 from oldhan.conf.config import settings
+from oldhan.infrastructure import http_util
 from oldhan.infrastructure.http_util import http_client
 
 
@@ -17,7 +18,7 @@ def _extract_data(result: dict | None) -> dict | None:
 
 async def fetch_order(order_id: str) -> dict | None:
     try:
-        r = await http_client.get(f"{_base_url()}/orders/{quote(order_id)}")
+        r = await http_util.http_client.get(f"{_base_url()}/orders/{quote(order_id)}")
         return _extract_data(r.json())
     except Exception:
         return None

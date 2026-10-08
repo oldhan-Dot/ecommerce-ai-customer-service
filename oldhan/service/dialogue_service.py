@@ -15,7 +15,7 @@ class DialogueService:
         # 1.调用Repository层：根据message.sender_id查询当前用户的对话状态
         state: DialogueState = await self.repository.load(user_message.sender_id)
 
-        # 2.调用Enginge层：处理消息  async def process(user_message,state)->ProcessResult
+        # 2.调用Engine层：处理消息  async def process(user_message,state)->ProcessResult
         process_result: ProcessResult = await self.engine.process(user_message, state)
 
         # 3.调用Repository层：更新对话状态

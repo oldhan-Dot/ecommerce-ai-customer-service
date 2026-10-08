@@ -7,6 +7,15 @@ from oldhan.task.flows.models import FlowsList, FlowSlot, Flow, FlowStep, Collec
 #通过task/flows/models文件中的类将yml文件--->传入step_data转换为对象格式
 class FlowLoader:
 
+    def load_many(self, paths: list[Path])->FlowsList:
+        slots = {}
+        flows = []
+        for path in paths:
+            flowslist = self.load(path)
+            slots.update(flowslist.slots)
+            flows.extend(flowslist.flows)
+        return FlowsList(slots=slots,flows=flows)
+
     def load(self,path:Path)->FlowsList:
         with open(path,"r",encoding="utf-8") as f:
             data  = yaml.safe_load(f)
