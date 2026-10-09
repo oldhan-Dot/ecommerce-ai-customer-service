@@ -4,7 +4,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Any, Dict, List
 
 from oldhan.domain.contexts import TaskContext, SystemContext
-from oldhan.domain.messages import UserMessage, BotMessage
+from oldhan.domain.messages import UserMessage, BotMessage, MessageObject
 
 
 #DialogueState:用户的状态结构
@@ -214,5 +214,5 @@ class DialogueState:
     def end_task(self):
         self.active_task = None
 
-
-    def set_focused_object(self):
+    def set_focused_object(self, object: MessageObject):
+        self.focused_object = FocusedObject(**object.to_dict())

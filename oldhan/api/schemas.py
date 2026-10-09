@@ -17,6 +17,8 @@ class ChatHistoryMessageResponse(BaseModel):
     object:ChatObjectPayload | None = None
 
 class ChatHistoryResponse(BaseModel):#继承BaseModel后不需要__init__初始化(默认值可以写None)
+    session_id: str
+    session_started_at: float
     sender_id :str
     messages :list[ChatHistoryMessageResponse]
 

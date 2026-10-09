@@ -8,13 +8,8 @@ from oldhan.engine.dialogue_engine import DialogueEngine
 from oldhan.infrastructure import database
 from oldhan.repository.dialogue_state_repository import DialogueStateRepository
 from oldhan.service.dialogue_service import DialogueService
+from oldhan.service.history_service import HistoryService
 
-
-
-
-@lru_cache
-def get_dialogue_service()->DialogueService:
-    return DialogueService()
 
 async def get_session()->AsyncSession:
     async with database.session_factory() as session:
@@ -30,10 +25,15 @@ def get_dialogue_state_repository(
 def get_dialogue_engine()->DialogueEngine:
    return build_dialogue_engine()
 
-#可以当作池来用,一个dialogue_service实例多次用
 @lru_cache
 def get_dialogue_service(
         repository: DialogueStateRepository = Depends(get_dialogue_state_repository),
         engine: DialogueEngine = Depends(get_dialogue_engine),
 )->DialogueService:
     return DialogueService(repository,engine)
+
+@lru_cache()
+def get_history_service(
+        repository: DialogueStateRepository = Depends(get_dialogue_state_repository),
+):
+    return HistoryService(repository)

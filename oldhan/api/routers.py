@@ -2,39 +2,27 @@ import uuid
 
 from fastapi import APIRouter, Depends
 
-from oldhan.api.deps import get_dialogue_service
+from oldhan.api.deps import get_dialogue_service, get_history_service
 from oldhan.api.schemas import ChatHistoryMessageResponse, ChatHistoryResponse, ChatObjectPayload, ChatRequest, \
     ChatResponse, BotMessageResponse
 from oldhan.domain.messages import UserMessage, ProcessResult
 from oldhan.service.dialogue_service import DialogueService
+from oldhan.service.history_service import HistoryService
 
 router = APIRouter()
 
 @router.get("/api/chat/history",response_model=ChatHistoryResponse)
-async def chat_history(sender_id:str):
-    print("sender_id :",sender_id)
+async def chat_history(
+        sender_id:str,
+        history_service:HistoryService = Depends(get_history_service),
+):
+    messages = await history_service.list_history(sender_id)
+    # turns（领域模型）--> ChatHistoryResponse(交互模型)
     return ChatHistoryResponse(
-        sender_id =sender_id,
-        messages =[ChatHistoryMessageResponse(
-            role = "user",
-            text = "你好呀",
-            object = None
-        ),
-        ChatHistoryMessageResponse(
-            role = "user",
-            object = ChatObjectPayload(
-                type = "product",
-                id = "l2026",
-                title = "联想小新2026",
-                attributes={
-                    "color" : "green",
-                    "price" : "6000.0",
-                }
-            )
-        )
-
-        ]
+        sender_id = sender_id,
+        messages = messages,
     )
+
 
 @router.post("/api/chat") #对话接口
 async def chat(chat_request:ChatRequest,
@@ -56,7 +44,7 @@ async def chat(chat_request:ChatRequest,
      #用户消息
     user_message = UserMessage.from_dict(dict_data)
     #2.调用DialogueService类中的process_message方法进行对话处理
-    process_result:ProcessResult = await DialogueService.process_message(user_message)
+    process_result:ProcessResult = await dialogue_service.process_message(user_message)
 
     #将领域模型process_result转换为交互模型ChatResponse
     messages = []
