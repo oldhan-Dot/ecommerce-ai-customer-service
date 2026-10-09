@@ -136,11 +136,6 @@ flows:
         response:
           text: "请告诉我你的订单号。"
         next: ask_refund_reason
-        validation:
-          condition: "slots.order_number == '123456'"
-          failure_response:
-            text: "抱歉，订单号有误，请重新输入。"
-
 
       - id: ask_refund_reason
         type: collect
@@ -152,23 +147,13 @@ flows:
       - id: refund_submitted
         type: action
         action: action_submit_refund_request
-        next:
-          - if: "slots.order_submit_status == 'success'"
-            then: show_refund_status_ok
-          - else: show_refund_status_error
+        next: show_refund_request
 
-      - id: show_refund_status_ok
+      - id: show_refund_request
         type: action
         action: action_response
         args:
-          text: "好的，订单{{ slots.order_number }}的退款申请已提交，原因是：{{ slots.refund_reason }}。后续会尽快为你处理。"
-        next: end
-
-      - id: show_refund_status_error
-        type: action
-        action: action_response
-        args:
-          text: "抱歉，订单{{ slots.order_number }}的退款申请提交失败，请联系人工客服。"
+          text: "{{slots.tips}}"
         next: end
 
       - id: end

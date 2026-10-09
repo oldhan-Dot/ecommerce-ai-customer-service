@@ -213,3 +213,6 @@ class DialogueState:
 
     def end_task(self):
         self.active_task = None
+
+
+    def set_focused_object(self):
