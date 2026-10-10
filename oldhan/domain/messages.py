@@ -5,7 +5,8 @@ from typing import Any
 
 #领域模型
 #定义用户消息类型
-class MessageType(Enum):
+#继承 str 是为了能直接 json.dumps / 和 "text" 比较;只继承 Enum 时 json.dumps 会 TypeError
+class MessageType(str, Enum):
     TEXT = "text"
     OBJECT = "object"
 
@@ -49,6 +50,9 @@ class UserMessage:
             sender_id = dict_data["sender_id"],
             message_id = dict_data["message_id"],
             type = MessageType.TEXT if dict_data["type"] == "text" else MessageType.OBJECT,
+            # text 必须显式读出来!它有默认值 None,漏传不会报错,但用户说的话会静默丢失,
+            # 导致 LLM 收到 "USER: None",意图识别只能判空
+            text = dict_data.get("text"),
             object = MessageObject.from_dict(dict_data["object"]) if dict_data.get("object") else None
         )
 
@@ -61,12 +65,13 @@ class BotMessage:
     def to_dict(self)->dict:
         return {
             "text":self.text,
-            "Object":self.object.to_dict() if self.object else None
+            # key 必须是小写 object,和 from_dict 读的对上(原来写成 "Object",往返后对象会丢)
+            "object":self.object.to_dict() if self.object else None
         }
     @classmethod
     def from_dict(cls,dict_data)->"BotMessage":
         return cls(
-            text = dict_data["text"],
+            text = dict_data.get("text"),
             object = MessageObject.from_dict(dict_data["object"]) if dict_data.get("object") else None
         )
 

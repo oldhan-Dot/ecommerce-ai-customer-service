@@ -15,7 +15,9 @@ def register_custom_actions(registry:ActionRegistry):
     #1.导入oldhan.task.action.custom包
     package = importlib.import_module("oldhan.task.action.custom")
     #2.遍历包中的所有模块
-    for __,name,is_pkg in pkgutil.walk_packages(package.__path__):  #__：这个模块的路径 name：模块的名字 is_pkg是不是一个包
+    #  prefix 必须写:不加 prefix 时 name 是裸模块名(如 action_lookup_order_status),
+    #  直接 import_module(name) 会 ModuleNotFoundError,必须补成完整包路径
+    for __,name,is_pkg in pkgutil.walk_packages(package.__path__,prefix=f"{package.__name__}."):
         if is_pkg:
             continue
         #导入custom包中的模块

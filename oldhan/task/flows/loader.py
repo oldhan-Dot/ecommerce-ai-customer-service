@@ -20,14 +20,15 @@ class FlowLoader:
         with open(path,"r",encoding="utf-8") as f:
             data  = yaml.safe_load(f)
             #获取yaml中的slots数据
-            slots_data = data.get("slots")
+            #注意:system_flows.yml 里没有 slots 段,data.get 会返回 None,所以兜底成空字典
+            slots_data = data.get("slots") or {}
             #解析slots数据
             slots = self._load_slots(slots_data)
 
             #获取yaml中的flows数据
-            flows_data = data.get("flows")
-            #解析flows数据
-            flows = self._load_flows(flows_data)
+            flows_data = data.get("flows") or {}
+            #解析flows数据(把已经解析好的 slots 传进去,flow 要用它反查自己需要的槽位)
+            flows = self._load_flows(flows_data, slots)
             return FlowsList(
                 slots=slots,
                 flows=flows
@@ -55,7 +56,9 @@ class FlowLoader:
             for step in steps:
                 if isinstance(step,CollectFlowStep):
                     flow_slot : FlowSlot = slots.get(step.slot_name)
-                    flow_slots.append(flow_slot)
+                    #槽位表里没有这个名字就跳过,避免把 None 塞进列表
+                    if flow_slot is not None:
+                        flow_slots.append(flow_slot)
 
 
             flows.append(Flow(
@@ -63,5 +66,6 @@ class FlowLoader:
                 name=flow_name,
                 description=flow_description,
                 steps=steps,
-                flows=flow_slots
+                slot=flow_slots
             ))
+        return flows

@@ -69,8 +69,8 @@ class CommandProcessor:
                 )
                 #启动system_task_started系统任务(创建系统上下文)
                 state.start_system_task(StartedSystemContext(
-                    flow_id="system_task_start",
-                    step_id=flows_list.get_flow_by_id("system_task_start").get_start_step().id,
+                    flow_id="system_task_started",
+                    step_id=flows_list.get_flow_by_id("system_task_started").get_start_step().id,
                     started_flow_id = flow_id,
                     started_flow_name = target_flow.name
                 ))

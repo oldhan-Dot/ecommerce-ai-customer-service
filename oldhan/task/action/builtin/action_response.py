@@ -1,4 +1,3 @@
-from idlelib import history
 from typing import Dict, Any
 
 from jinja2 import Template
@@ -16,27 +15,31 @@ class ActionResponse(Action):
     name = "action_response"
 
     async def run(self,state:DialogueState,args:Dict[str,Any])->ActionResult:
-        model = args.get("model", 'static')
-        if model == "static":
+        # 注意:key 是 mode(不是 model)。YAML 的 args: 里写的就是 mode: static / rephrase / generate
+        mode = args.get("mode", 'static')
+        if mode == "static":
             # 静态模式创建机器回复
-            # model:static
+            # mode:static
             # text："订单{{slots.order_number }}当前状态是{{slots.order_status}}我会继续帮你跟进。"
             # text："好的，我们先处理{{context.started_flow_name}}。
             text = args.get("text", '')
             data = {
                 "slots": state.active_task.slots if state.active_task else {},
-                "content": state.active_system_task.to_dict() if state.active_system_task else {},
+                # key 必须是 context! YAML 里的模板写的是 {{ context.xxx }},
+                # 写成 content 会 UndefinedError: 'context' is undefined
+                "context": state.active_system_task.to_dict() if state.active_system_task else {},
             }
+            # render(data) 与 render(**data) 等价(Jinja2 内部是 dict(*args, **kwargs))
             rendered_text = Template(text).render(data)
             return ActionResult(
                 messages = [BotMessage(text=rendered_text)])
-        elif model == "rephrase":
+        elif mode == "rephrase":
             #改写模式创建机器回复
             #1.获取text并渲染
             text = args.get("text", '')
-            data = { #因为不不知道text是用户flow还是系统flow
+            data = { #因为不知道text是用户flow还是系统flow,两个命名空间都喂进去
                 "slots":state.active_task.slots if state.active_task else {},
-                "content": state.active_system_task.to_dict() if state.active_system_task else {},
+                "context": state.active_system_task.to_dict() if state.active_system_task else {},
             }
             rendered_text = Template(text).render(data)
 
@@ -52,9 +55,9 @@ class ActionResponse(Action):
                                                 {{ user_message }}
                                             
                                                 建议回复：{{ current_response }}""")
-            #数据
+            #数据(不要加花括号包成 set,直接给字符串)
             prompt_inputs = {
-                "history":{build_history(state.get_current_session().turns)},
+                "history":build_history(state.get_current_session().turns),
                 "user_message":state.pending_turn.input_message.text,
                 "current_response":rendered_text,
             }
@@ -79,7 +82,7 @@ class ActionResponse(Action):
                                                 用户最后一句：{{ user_message }}""" )
             #数据
             prompt_inputs = {
-                "history":{build_history(state.get_current_session().turns)},
+                "history":build_history(state.get_current_session().turns),
                 "user_message":state.pending_turn.input_message.text,
             }
 
@@ -87,9 +90,10 @@ class ActionResponse(Action):
             #通过模板构建提示词
             prompt = PromptTemplate.from_template(
                 prompt_text,
-                prompt_format="jinja2"
+                # 参数名是 template_format,不是 prompt_format
+                template_format="jinja2"
             )
             chain = prompt | llm_client | StrOutputParser()
-            gengerated_text = chain.invoke(prompt_inputs)
-            # 3.将改写后的文本构造BotMessage并返回
-            return ActionResult(messages = [BotMessage(text=gengerated_text)])
+            generated_text = chain.invoke(prompt_inputs)
+            # 3.将生成后的文本构造BotMessage并返回
+            return ActionResult(messages = [BotMessage(text=generated_text)])

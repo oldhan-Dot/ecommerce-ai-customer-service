@@ -12,13 +12,14 @@ class ChatObjectPayload(BaseModel):
 
 class ChatHistoryMessageResponse(BaseModel):
     """历史记录中的一条消息"""
+    session_id: str
+    session_started_at: float
     role : str
     text : str| None = None
     object:ChatObjectPayload | None = None
 
 class ChatHistoryResponse(BaseModel):#继承BaseModel后不需要__init__初始化(默认值可以写None)
-    session_id: str
-    session_started_at: float
+
     sender_id :str
     messages :list[ChatHistoryMessageResponse]
 

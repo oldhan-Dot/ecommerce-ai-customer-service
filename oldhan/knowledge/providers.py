@@ -1,6 +1,6 @@
 import asyncio
 import json
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
 
@@ -15,7 +15,7 @@ class KnowledgeChunk:
 
 class KnowledgeProvider(ABC):
     provider_id = " "
-    @abstractclassmethod
+    @abstractmethod
     async def retrieve(self,state: DialogueState) -> List[KnowledgeChunk]:
         pass
 
@@ -92,7 +92,7 @@ class FAQProvider(KnowledgeProvider):
 
 class RAGProvider(KnowledgeProvider):
     provider_id = "rag.default"
-    async def rretrieve(self,state: DialogueState) -> List[KnowledgeChunk]:
+    async def retrieve(self,state: DialogueState) -> List[KnowledgeChunk]:
         return [
             KnowledgeChunk(content= "未检索到相关问题（rag）")
         ]

@@ -50,4 +50,4 @@ class HistoryService:
                             ) if bot_message.object is not None else None
                         )
                     )
-            return messages
+        return messages

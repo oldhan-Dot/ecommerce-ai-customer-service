@@ -25,4 +25,7 @@ class Settings(BaseSettings):
     app_host :str
     app_port :int
 
+    digital_human_app_id: str
+    digital_human_app_secret: str
+
 settings = Settings()

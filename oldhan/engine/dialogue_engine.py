@@ -1,7 +1,7 @@
 import time
 import uuid
 from typing import List
-from oldhan.chichat.handler import ChitchatHandler
+from oldhan.chitchat.handler import ChitchatHandler
 from oldhan.clarify.reasons import ClarifyReason
 from oldhan.clarify.responder import ClarifyResponder
 from oldhan.domain.contexts import CollectSystemContext

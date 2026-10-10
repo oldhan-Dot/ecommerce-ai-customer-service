@@ -58,7 +58,7 @@ class Session:
     session_id: str
     started_at: float
     last_activity_at: float
-    closed_at: float
+    closed_at: float | None = None
     turns : list[Turn] = field(default_factory=list)
 
     def to_dict(self)->dict:

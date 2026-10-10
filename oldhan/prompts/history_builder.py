@@ -27,10 +27,11 @@ def build_history(turns:List[Turn]):
 def render_bot_message(bot_message:BotMessage)->str:
     if bot_message.text:
         return f"BOT: {bot_message.text}"
-    else:
-        object:MessageObject = bot_message.object
-        object_text = render_object(object)
-        return f"BOT: {object_text}"
+    # 注意:这里要判 None。text 为空串或 None、且 object 也是 None 时,
+    # 直接 render_object(None) 会 AttributeError: 'NoneType' object has no attribute 'type'
+    if bot_message.object is not None:
+        return f"BOT: {render_object(bot_message.object)}"
+    return "BOT: (空消息)"
 
 
 
@@ -40,7 +41,11 @@ def render_user_message(user_message:UserMessage)->str:
         return f"USER: {user_message.text}"
     else:
         object:MessageObject = user_message.object
+        if object is None:
+            return "USER: (空消息)"
+        # 这里原来漏了 return,导致对象消息渲染出来是 None
         object_text = render_object(object)
+        return f"USER: {object_text}"
 
 
 

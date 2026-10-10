@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from oldhan.chichat.handler import ChitchatHandler
+from oldhan.chitchat.handler import ChitchatHandler
 from oldhan.clarify.responder import ClarifyResponder
 from oldhan.engine.dialogue_engine import DialogueEngine
 from oldhan.knowledge.handler import KnowledgeHandler

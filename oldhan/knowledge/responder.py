@@ -17,7 +17,7 @@ class KnowledgeResponder:
 
     async def respond(self,state:DialogueState,chunks:List[KnowledgeChunk])->List[BotMessage]:
         #1.读取提示词模板
-        prompt_text = load_prompt("knowledge_response")
+        prompt_text = load_prompt("knowledge_respond")
         #2.提示词参数
         prompt_inputs = {
             "knowledge_content":"\n\n".join([chunk.content for chunk in chunks]),

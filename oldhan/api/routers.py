@@ -3,8 +3,9 @@ import uuid
 from fastapi import APIRouter, Depends
 
 from oldhan.api.deps import get_dialogue_service, get_history_service
-from oldhan.api.schemas import ChatHistoryMessageResponse, ChatHistoryResponse, ChatObjectPayload, ChatRequest, \
+from oldhan.api.schemas import ChatHistoryResponse, ChatObjectPayload, ChatRequest, \
     ChatResponse, BotMessageResponse
+from oldhan.conf.config import settings
 from oldhan.domain.messages import UserMessage, ProcessResult
 from oldhan.service.dialogue_service import DialogueService
 from oldhan.service.history_service import HistoryService
@@ -20,11 +21,11 @@ async def chat_history(
     # turns（领域模型）--> ChatHistoryResponse(交互模型)
     return ChatHistoryResponse(
         sender_id = sender_id,
-        messages = messages,
-    )
+        messages = messages
+)
 
 
-@router.post("/api/chat") #对话接口
+@router.post("/api/chat",response_model=ChatResponse) #对话接口
 async def chat(chat_request:ChatRequest,
                dialogue_service:DialogueService = Depends(get_dialogue_service)):#依赖注入
     #1.将交互模型chat_request转换为领域模型UserMessage
@@ -66,4 +67,11 @@ async def chat(chat_request:ChatRequest,
     )
     #4.返回交互模型 ChatResponse
     return chat_response
+
+@router.get("/api/digital-human/credentials")
+async def get_digital_human_credentials():
+    return {
+        "app_id": settings.digital_human_app_id,
+        "app_secret": settings.digital_human_app_secret
+    }
 

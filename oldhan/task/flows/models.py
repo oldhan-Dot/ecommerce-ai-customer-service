@@ -39,9 +39,9 @@ class FlowStep:  #dict_data-->step_data
     next : list[FlowStepLink]
     @classmethod
     def from_dict(cls,dict_data:dict)->"FlowStep":
-        return cls(
-            FLOWSTEP_DICT[dict_data.get("type")].from_dict(dict_data)
-        )
+        #这是一个工厂方法:按 type 找到具体的子类,把活儿交给它的 from_dict
+        #不能写成 cls(子类.from_dict(...)) —— 那等于把一个造好的对象又当参数塞进构造函数
+        return FLOWSTEP_DICT[dict_data.get("type")].from_dict(dict_data)
 
 
 @dataclass(slots=True)
@@ -57,12 +57,13 @@ class StartFlowStep(FlowStep):
 def _build_next_links(next_data:str|list)->list[FlowStepLink]:
     next_list = []
     if isinstance(next_data, str):
-        next_list.append(StaticLink(target=next_data
-        ))
+        next_list.append(StaticLink(target=next_data))
     else: #if then else
         for link_data in next_data:
             if link_data.get("if"):
-                next_data.append(ConditionalLink(
+                #注意:这里必须 append 到 next_list,不能 append 到 next_data
+                #(next_data 是正在遍历的输入列表,往里加元素会让循环吃到刚加进去的对象)
+                next_list.append(ConditionalLink(
                     condition=link_data.get("if"),
                     target=link_data.get("then")
                 ))
@@ -102,9 +103,11 @@ class ActionFlowStep(FlowStep):
 #为什么定义ResponseDefine和SlotsValidation:多个值需要定义为一个类来封装
 @dataclass(slots=True)
 class ResponseDefinition:
-    model : str
+    # mode 要给默认值:YAML 里大部分 collect 步骤只写 text,不写 mode
+    # (取值为 static / rephrase / generate, 对应 ActionResponse 的三种渲染模式)
+    mode : str = "static"
     text : str|None = None
-    prompts : str|None = None
+    prompt : str|None = None
 
 @dataclass(slots=True)
 class SlotValidation:
@@ -124,10 +127,10 @@ class CollectFlowStep(FlowStep):
             type = FlowStepType.COLLECT,
             next = _build_next_links(dict_data.get("next",[])),
             slot_name = dict_data.get("slot_name"), #collect流程是需要去收集信息，所有带有slot_name
-            response = ResponseDefinition(**dict_data.get("response",{})),
+            response = ResponseDefinition(**(dict_data.get("response") or {})),
             validation = SlotValidation(
                 condition = dict_data.get("validation").get("condition"),
-                failure_response=ResponseDefinition(**dict_data.get("validation").get("failure_response",{}))
+                failure_response=ResponseDefinition(**(dict_data.get("validation").get("failure_response") or {}))
             ) if dict_data.get("validation") else None,
         )
 
@@ -166,6 +169,13 @@ class Flow:
             if step.type == FlowStepType.START:
                 return step
         raise Exception("No start step found in current flow")
+
+    #根据 step_id 在 steps 中定位步骤(FlowExecutor 推进流程时要用)
+    def get_step_by_id(self,step_id:str)->"FlowStep|None":
+        for step in self.steps:
+            if step.id == step_id:
+                return step
+        return None
 
 @dataclass(slots=True)
 class FlowsList:
